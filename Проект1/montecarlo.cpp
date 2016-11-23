@@ -134,12 +134,13 @@ long double func(long double z_new, long double v_new, int n, int L) {
 	v = 2 * alpha() - 1;
 
 	long double AS = (1 - e)*lambda(L);
-	long double r = R(v);
-	long double B = r*func(ksi(z, v), -v, n-1, L) + (1 - r)*func(ksi(z, v), psi(v), n-1, L);
 	
-	long double result = B*e + AS*func(z, v, n-1, L) + f_0(z_old, v_old, L); 
-
-	return result;
+	if (ksi(z, v) == z1) {
+		long double r = R(v);
+		long double B = r*func(ksi(z, v), -v, n-1, L) + (1 - r)*func(ksi(z, v), psi(v), n-1, L);
+		return B*e + AS*func(z, v, n-1, L) + f_0(z_old, v_old, L); 
+	}
+	return AS*func(z, v, n-1, L) + f_0(z_old, v_old, L);
 }
 
 int main() {
