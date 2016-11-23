@@ -7,8 +7,8 @@
 
 using namespace std;	
 
-const double k1 = 1.5, k2 = 1;				//коэффициенты преломления стекла и воздуха
-const long double z0 = 0, z1 = 0.5, z2 = 1;	//границы
+const double k1 = 1.5, k2 = 1;				//Д™Г®ГЅГґГґДЌГ¶ДЌДєГ­Е€Е± ДЏД‘ДєГ«Г®Д›Г«ДєГ­ДЌЛ™ Е„Е€ДєД™Г«Е• ДЌ ГўГ®Г§Г¤ГіЕ‘Е•
+const long double z0 = 0, z1 = 0.5, z2 = 1;	//ДѓД‘Е•Г­ДЌГ¶Е±
 
 template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
@@ -95,14 +95,13 @@ long double lambda(int L) {
 }
 
 long double exponenta(long double z, long double v, int L) {
-	long double expon = 0;
 	long double d = 0;
 	
 	if (L == 1) {
 		if (abs(v) > 0.00000000001) {
 			if (v > 0) { d = z / v; }
 			else { d = abs((z - l(z)) / v); }
-			return expon = expl(-d);
+			return expl(-d);
 		}
 	}
 	if (L == 2) {
@@ -112,7 +111,7 @@ long double exponenta(long double z, long double v, int L) {
 				else { d = (z - l(z)) / v; }
 			}
 			else { d = abs((z - l(z)) / v); }
-			return expon = expl(-d);
+			return expl(-d);
 		}
 	}
 	//cout << "mistake in exp" << endl;
@@ -135,9 +134,10 @@ long double func(long double z_new, long double v_new, int n, int L) {
 	v = 2 * alpha() - 1;
 
 	long double AS = (1 - e)*lambda(L);
-	long double result = AS*func(z, v, n-1, L) + f_0(z_old, v_old, L); //+Bf*exp
 	long double r = R(v);
-	long double B = r*func(ksi(z, v), -v, n - 1, L) + (1 - r)*func(ksi(z, v), psi(v), n - 1, L);
+	long double B = r*func(ksi(z, v), -v, n-1, L) + (1 - r)*func(ksi(z, v), psi(v), n-1, L);
+	
+	long double result = B*e + AS*func(z, v, n-1, L) + f_0(z_old, v_old, L); 
 
 	return result;
 }
@@ -146,8 +146,8 @@ int main() {
 	ofstream out;
 	out.open("result.txt");
 	long double AS = 0, z_new = 0, v_new = 0.5;
-	int N = 10000;							//число траекторий
-	int n = 20;								//номер точки на траектории
+	int N = 10000;							//Г·ДЌЕ„Г«Г® Е€Д‘Е•ДєД™Е€Г®Д‘ДЌГ©
+	int n = 20;								//Г­Г®Д›ДєД‘ Е€Г®Г·Д™ДЌ Г­Е• Е€Д‘Е•ДєД™Е€Г®Д‘ДЌДЌ
 
 	const int m = 10;
 	long double s[m];
