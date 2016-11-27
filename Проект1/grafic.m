@@ -1,5 +1,6 @@
 function g = grafic(n)
-    X = [0:0.1:0.8];
+    h = 3.5/20;
+    X = [0:h:(3.5-2*h)];
     Y = dlmread('result.txt',  ';')
     length(Y)
     length(X)

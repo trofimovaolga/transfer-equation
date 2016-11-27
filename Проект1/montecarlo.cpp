@@ -4,40 +4,47 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+#include <random>
 
-using namespace std;	
+using namespace std;
+//mt19937 r;
+void halt(int s) {
+	//r();
+	system("pause");
+	exit(s);
+}
 
-const double k1 = 1.5, k2 = 1;				//коэффициенты преломления стекла и воздуха
-const long double z0 = 0, z1 = 0.5, z2 = 1;	//границы
+const double k1 = 1.54, k2 = 1;				//коэффициенты преломления стекла и воздуха
+const long double z0 = 0, z1 = 0.7, z2 = 3.5;	//границы
+double eps = 1e-8;
 
 template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
-int L(long double z_new) {
+bool is_eq(long double a, long double b) {
+	return abs(a - b) < eps;
+}
 
-	if ((z0 <= z_new) && (z_new < z1)) {
+int L(long double z) {
+	if ((z0 <= z) && (z < z1)) {
 		return 1;
 	}
-	if ((z1 <= z_new) && (z_new <= z2)) {
+	if ((z1 <= z) && (z <= z2)) {
 		return 2;
 	}
-	//cout << "mistake in L" << endl;
+	cout << "mistake in L" << endl;
+	halt(0);
 	return 0;
 }
 
 double k(long double v) {
-	if ((0 < v) && (v <= 1)) { return k2 / k1; }
-	else 
-		if ((-1 <= v) && (v < 0)) { return k1 / k2; }
-	//cout << "mistake in k" << endl;
-	return 0;
+	return v > 0 ? k2 / k1 : k1 / k2;
 }
 
 double psi(long double v) {
 	long double p = 1 - k(v)*k(v)*(1 - v*v);
-	if (p >= 0) { return sgn(v)*sqrt(p); }
-	return 0; 
+	return (p >= 0) ? sgn(v)*sqrt(p) : 0;
 }
 
 long double R(long double v) {
@@ -48,108 +55,160 @@ long double R(long double v) {
 }
 
 double ksi(long double z, long double v) {
-	if (L(z) == 1) {
-		if (v > 0) { return z0; } 
-		else { return z1;}
+	int Lvar = L(z);
+	if (Lvar == 1){
+		if (v > 0) { 
+			return z0; 
+		} 
+		else { 
+			return z1;
+		}
 	}
-	if (L(z) == 2) {
-		if (v > 0) { return z1; }
-		else { return z2; }
+	if (Lvar == 2) {
+		if (z == z1) {
+			if (v > 0) {
+				return z0;
+			}
+			else {
+				return z2;
+			}
+		}
+		if (v > 0) { 
+			return z1; 
+		}
+		else { 
+			return z2; 
+		}
 	}
-	//cout << "mistake in ksi" << endl;
+	cout << "mistake in ksi" << endl;
+	halt(0);
 	return 0;
 }
 
 long double alpha() {
-	long double a = ((long double)rand() / RAND_MAX);
+	double k = (double)rand() + 10, d = ((double)RAND_MAX + 20);
+	long double a = k / d;
 	return a;
 }
 
-long double l(long double z_new) {
-	if (L(z_new) == 1) { 
+long double l(long double z) {
+	int Lvar = L(z);
+	if (Lvar == 1) { 
 		return abs(z1 - z0); 
 	}
-	if (L(z_new) == 2) { 
+	if (Lvar == 2) { 
 		return abs(z2 - z1); 
 	}
-	//cout << "mistake in l" << endl;
+	cout << "mistake in l" << endl;
+	halt(0);
 	return 0;
 }
 
-long double h(long double v, int L) {
-	if (L = 1) {
-		if (v > 0) { return 1; }
-		else { return 0; }
+long double h(long double z, long double v) {
+	long double k = ksi(z, v);
+	if (k == z0) {
+		return 1;
 	}
-	if (L = 2) {
-		if (v > 0) { return 0; }
-		else { return 0.5; }
+	else if (k == z2) {
+		return 0;
 	}
-	return 0;
+	else { return 0;  }
+	cout << "mistake in h" << endl;
+	halt(0);
 }
 
 long double lambda(int L) {
-	if (L == 1) { return 0.9; }
-	if (L == 2) { return 0.92; }
+	if (L == 1) { 
+		return 0.22/0.226; 
+	}
+	if (L == 2) { 
+		return 0.156/0.162; 
+	}
+	cout << "mistake in lambda" << endl;
+	halt(0);
 	return 0;
 }
 
-long double exponenta(long double z, long double v, int L) {
-	long double expon = 0;
-	long double d = 0;
-	
-	if (L == 1) {
-		if (abs(v) > 0.00000000001) {
-			if (v > 0) { d = z / v; }
-			else { d = abs((z - l(z)) / v); }
-			return expon = expl(-d);
-		}
-	}
-	if (L == 2) {
-		if (abs(v) > 0.00000000001) {
+long double exponenta(long double z, long double v) {
+	long double expon = 0.0;
+	long double d = 0.0;
+	int Lvar = L(z);
+
+	if (Lvar == 1) {
+		if (abs(v) > eps) {
 			if (v > 0) { 
-				if (z == l(z)) { d = l(z) / v; }
-				else { d = (z - l(z)) / v; }
+				d = z / v; 
 			}
-			else { d = abs((z - l(z)) / v); }
-			return expon = expl(-d);
+			else { 
+				d = abs((z - z1) / v); 
+			}
+			expon = expl(-d);
 		}
 	}
-	//cout << "mistake in exp" << endl;
-	return 0;
-}
-
-long double f_0(long double z, long double v, int L) {
-	return h(v, L) * exponenta(z, v, L);
-}
-
-long double func(long double z_new, long double v_new, int n, int L) {
-	if (n == 0) { 
-		return f_0(z_new, v_new, L); 
+	if (Lvar == 2) {
+		if (abs(v) > eps) {
+			if (v > 0) {
+				if (is_eq(z, z1)) { 
+					d = z1 / v; 
+				}
+				else { 
+					d = (z - z1) / v; 
+				}
+			}
+			else { 
+				d = (z - z2) / v; 
+			}
+			expon = expl(-d);
+		}
 	}
-	long double z_old = z_new;
-	long double v_old = v_new;
-	long double z, v, e = exponenta(z_old, v_old, L);
-	long double t = -logl(1 - alpha()*(1 - e));
-	z = z_old - t*v_old;
-	v = 2 * alpha() - 1;
+	if (isinf(expon)) {
+		cout << "exponenta is inf, d = " << d << ", e = " << expon << endl;
+		halt(0);
+	}
+	return expon;
+}
 
-	long double AS = (1 - e)*lambda(L);
-	long double result = AS*func(z, v, n-1, L) + f_0(z_old, v_old, L); //+Bf*exp
-	long double r = R(v);
-	long double B = r*func(ksi(z, v), -v, n - 1, L) + (1 - r)*func(ksi(z, v), psi(v), n - 1, L);
+long double f_0(long double z, long double v) {
+	return h(z, v) * exponenta(z, v);
+}
 
-	return result;
+long double func(long double z, long double v, int n) {
+	if (n == 0) { 
+		return f_0(z, v); 
+	}
+	long double z_new, v_new, e = exponenta(z, v);
+	long double log_arg = 1 - alpha()*(1 - e);
+	if (log_arg <= 0) {
+		cout << "bad log argument" << endl;
+		halt(0);
+	}
+	long double t = -logl(log_arg);
+	
+	z_new = z - t*v; 
+	if (abs(z) >= z2) { 
+		cout << "bad z variable" << endl;
+		halt(0);
+	}
+	v_new = 2 * alpha() - 1;
+
+	long double AS = (1 - e)*lambda(L(z));
+	if (is_eq(ksi(z, v), z1)) {
+		long double r = R(v), p = psi(v);
+		long double B = r*func(z1, -v, n - 1) + (1 - r)*func(z1, p, n - 1);
+		return B*e + AS*func(z_new, v_new, n - 1) + f_0(z, v);
+	}
+	return AS*func(z_new, v_new, n - 1) + f_0(z, v);
 }
 
 int main() {
+	srand((unsigned)time(0));  
 	ofstream out;
 	out.open("result.txt");
 	long double AS = 0, z_new = 0, v_new = 0.5;
-	int N = 10000;							//число траекторий
-	int n = 20;								//номер точки на траектории
+	int N = 8000;							//число траекторий
+	int n = 8;								//номер точки на траектории
 
-	const int m = 10;
+	const int m = 20;
 	long double s[m];
 	long double step = z2 / m;
 	s[0] = z_new;
@@ -159,18 +218,15 @@ int main() {
 		//cout << s[k] << endl;
 	}
 
-	for (int q = 1; q < m; q++) {
-		srand(1);
-		z_new = s[q];
-		int Lvar = L(s[q]); 
+	for (int q = 1; q < m; q++) {	//z_new = s[q];
 		for (int i = 1; i <= N; i++) {
-			long double f_var = func(s[q], v_new, n, Lvar);
-			AS = (AS * (i-1) + f_var) / i;
+			AS = (AS * (i - 1) + func(s[q], v_new, n)) / i;
 		}
-		long double f = AS;
-		out << f << "\n";
+		out << AS << "\n";
 	}
-	//system("pause");
+	system("pause");
 	out.close();
 	return 0;
 }
+
+//макс 10 слоев сделать массивы
