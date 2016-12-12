@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <cstdio> 
 #include <cmath>
 #include <cstdlib> 
@@ -5,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+
 
 using namespace std;
 //mt19937 r;
@@ -189,7 +191,15 @@ long double func(long double z, long double v, int n) {
 		cout << "bad z variable" << endl;
 		halt(0);
 	}
-	v_new = 2 * alpha() - 1;
+	//v_new = 2 * alpha() - 1;
+	double a = alpha();
+	double g;
+	if (L(z) == 1) { g = 0.7; }
+	else if (L(z) == 2) { g = 0.9; }
+	
+	double v_tmp = (2*g - 1 - 2*g*a + 2*a + 2*a*a*g - g*g - 2*g*g*g*a + 2*a*g*g + 2*g*g*g*a*a)/(1 + g*g - 2*g - 4*a*g*g + 4*a*g + 4*a*a*g*g);
+	double phi = 2 * M_PI*a;
+	v_new = cos(phi)*sqrt((1 - v*v)*(1 - v_tmp*v_tmp)) + v_tmp*v;
 
 	long double AS = (1 - e)*lambda(L(z));
 	if (is_eq(ksi(z, v), z1)) {
@@ -204,7 +214,9 @@ int main() {
 	srand((unsigned)time(0));  
 	ofstream out;
 	out.open("result.txt");
-	long double AS = 0, z_new = 0, v_new = 0.5;
+	long double AS = 0, z_new = 0; // , v_new = 0.5;
+	double a = alpha();
+	double v_new = 2 * a - 1;
 	int N = 8000;							//число траекторий
 	int n = 8;								//номер точки на траектории
 
